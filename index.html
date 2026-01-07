@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Netflix - Stranger Things 5</title>
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23000000%22/><text x=%2250%22 y=%2250%22 text-anchor=%22middle%22 fill=%22%23E50914%22 font-family=%22serif%22 font-weight=%22bold%22 font-size=%2255%22>IX</text></svg>">
+
+    <style>
+        /* --- NETFLIX BASE STYLES --- */
+        :root {
+            --netflix-red: #E50914;
+            --bg-black: #141414;
+            --text-white: #fff;
+            --text-gray: #a3a3a3;
+        }
+
+        body {
+            background-color: var(--bg-black); color: var(--text-white);
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            margin: 0; overflow-x: hidden;
+        }
+
+        /* 1. INTRO MODAL (Gatekeeper) */
+        #gate-modal {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: #000; z-index: 9999;
+            display: flex; justify-content: center; align-items: center;
+            flex-direction: column; text-align: center;
+        }
+
+        .modal-question { font-size: 2.5rem; font-weight: bold; margin-bottom: 40px; color: var(--netflix-red); }
+        
+        .btn-group { display: flex; gap: 20px; }
+        
+        .modal-btn {
+            background: transparent; border: 2px solid #fff; color: #fff;
+            padding: 15px 40px; font-size: 1.2rem; cursor: pointer; text-transform: uppercase;
+            transition: 0.2s;
+        }
+        .modal-btn:hover { background: var(--netflix-red); border-color: var(--netflix-red); }
+
+        #modal-response {
+            margin-top: 30px; font-size: 1.5rem; color: #fff; 
+            font-weight: bold; letter-spacing: 3px; min-height: 30px; text-shadow: 0 0 10px var(--netflix-red);
+        }
+
+        /* 2. MAIN APP CONTAINER */
+        #main-app { display: none; opacity: 0; transition: opacity 1s; }
+
+        /* NAVIGATION BAR */
+        nav {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 4%; position: fixed; width: 92%; top: 0; z-index: 100;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.7) 10%, transparent 100%);
+            font-size: 0.9rem;
+        }
+
+        .nav-left { display: flex; align-items: center; gap: 20px; }
+        .logo { color: var(--netflix-red); font-size: 1.8rem; font-weight: bold; margin-right: 20px; cursor: pointer; }
+        .nav-link { color: #e5e5e5; text-decoration: none; cursor: pointer; transition: 0.2s; }
+        .nav-link:hover { color: #b3b3b3; }
+        .nav-link.active { font-weight: bold; color: #fff; }
+
+        .nav-right { display: flex; align-items: center; gap: 20px; }
+        .icon { width: 24px; height: 24px; fill: #fff; cursor: pointer; }
+        .account-icon { width: 32px; height: 32px; border-radius: 4px; cursor: pointer; }
+
+        /* HERO SECTION (The Banner) */
+        .hero {
+            height: 85vh;
+            position: relative;
+            background-image: url('https://occ-0-4100-2186.1.nflxso.net/dnm/api/v6/6AYY37jfdO6hpXcMjf9Yu5cnmO0/AAAABcIFFHqGrDletH1OSvfXQGpiRFbGRJKYKoYOu_EczGNAgalhWFdfvwg3pF86qtuHZu6x_o3S6-t1_WIJ6_Q-FtfCyPCi6qMzXVJ2.jpg?r=00f');
+            background-size: cover;
+            background-position: center top;
+        }
+
+        /* Gradient Overlay */
+        .hero-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to top, #141414 10%, transparent 60%),
+                        linear-gradient(to right, #141414 5%, transparent 60%);
+            display: flex; flex-direction: column; justify-content: center;
+            padding-left: 4%;
+        }
+
+        .hero-content {
+            margin-top: 100px; max-width: 650px;
+        }
+
+        .n-series {
+            color: #fff; font-weight: bold; letter-spacing: 5px; font-size: 1rem;
+            display: flex; align-items: center; margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+        .n-symbol {
+            color: var(--netflix-red); font-size: 2rem; margin-right: 10px; font-family: 'Arial Black';
+        }
+
+        .hero-title {
+            font-size: 5rem; font-weight: 900; line-height: 0.9; margin-bottom: 20px;
+            text-shadow: 2px 2px 10px rgba(0,0,0,0.8);
+        }
+
+        .hero-desc {
+            font-size: 1.2rem; line-height: 1.4; margin-bottom: 25px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+        }
+
+        /* ACTION BUTTONS */
+        .hero-btns { display: flex; gap: 15px; }
+
+        .btn {
+            border: none; border-radius: 4px; padding: 10px 24px; 
+            font-size: 1.1rem; font-weight: bold; cursor: pointer;
+            display: flex; align-items: center; gap: 10px; transition: 0.2s;
+        }
+        .btn-play { background: #fff; color: #000; }
+        .btn-play:hover { background: rgba(255, 255, 255, 0.75); }
+        .btn-info { background: rgba(109, 109, 109, 0.7); color: #fff; }
+        .btn-info:hover { background: rgba(109, 109, 109, 0.4); }
+
+        /* EPISODES SECTION */
+        .episodes-container { padding: 0 4% 40px 4%; margin-top: -50px; position: relative; z-index: 10; }
+        .section-title { font-size: 1.5rem; font-weight: bold; margin-bottom: 20px; }
+
+        .episode-item {
+            display: flex; align-items: center; padding: 25px 20px; border-bottom: 1px solid #333;
+            cursor: pointer; transition: 0.2s; border-radius: 4px;
+        }
+        .episode-item:hover { background-color: #222; }
+        
+        .ep-index { font-size: 1.5rem; color: #d2d2d2; width: 40px; }
+        
+        .ep-thumbnail {
+            width: 160px; height: 90px; background: #000; margin-right: 20px; position: relative;
+            border-radius: 4px; overflow: hidden; display: flex; align-items: center; justify-content: center;
+        }
+        
+        .play-icon-overlay {
+            width: 30px; height: 30px; border: 2px solid #fff; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.6);
+            opacity: 0; transition: 0.2s; position: absolute; z-index: 5;
+        }
+        .episode-item:hover .play-icon-overlay { opacity: 1; }
+        .play-arrow { width: 0; height: 0; border-top: 6px solid transparent; border-bottom: 6px solid transparent; border-left: 10px solid #fff; margin-left: 2px; }
+
+        .ep-info { flex: 1; }
+        .ep-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: bold; }
+        .ep-desc { font-size: 0.9rem; color: var(--text-gray); line-height: 1.4; max-width: 90%; }
+
+        /* SECRET EVIDENCE BOX */
+        .evidence-box {
+            background: #1a0000; border-left: 4px solid var(--netflix-red);
+            padding: 15px; margin-top: 15px; font-size: 0.9rem; display: none;
+            animation: fadeIn 0.5s;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .evidence-line { margin-bottom: 6px; color: #ccc; font-family: 'Courier New', monospace; }
+
+        /* 3. FAKE PLAYER */
+        #video-player {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 2000; display: none;
+            flex-direction: column; justify-content: center; align-items: center;
+        }
+        .loader {
+            border: 5px solid #333; border-top: 5px solid var(--netflix-red);
+            border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin-bottom: 30px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .countdown { font-size: 5rem; font-weight: bold; color: #fff; text-shadow: 0 0 20px var(--netflix-red); }
+        .close-player { position: absolute; top: 40px; right: 40px; font-size: 2rem; cursor: pointer; }
+
+        /* --- THE NEW SVG LOGO --- */
+        .conformity-logo { width: 100%; height: 100%; }
+
+    </style>
+</head>
+<body>
+
+    <audio id="bg-audio" loop>
+        <source src="vecnalives.mp3" type="audio/mpeg">
+    </audio>
+
+    <div id="gate-modal">
+        <div class="modal-question">DO YOU BELIEVE THE ENDING WAS REAL?</div>
+        <div class="btn-group" id="modal-btns">
+            <button class="modal-btn" onclick="checkAnswer(true)">YES</button>
+            <button class="modal-btn" onclick="checkAnswer(false)">NO</button>
+        </div>
+        <div id="modal-response"></div>
+    </div>
+
+    <div id="main-app">
+        
+        <nav>
+            <div class="nav-left">
+                <div class="logo">NETFLIX</div>
+                <a class="nav-link active">Home</a>
+                <a class="nav-link">TV Series</a>
+                <a class="nav-link">Movies</a>
+                <a class="nav-link">New & Popular</a>
+            </div>
+            <div class="nav-right">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                <div style="font-size: 0.9rem;">KIDS</div>
+                <svg class="icon" viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/></svg>
+                <img class="account-icon" src="https://upload.wikimedia.org/wikipedia/commons/0/0b/Netflix-avatar.png" alt="User">
+            </div>
+        </nav>
+
+        <div class="hero">
+            <div class="hero-overlay">
+                <div class="hero-content">
+                    <div class="n-series"><span class="n-symbol">N</span> S E R I E S</div>
+                    <div class="hero-title">STRANGER<br>THINGS</div>
+                    <div class="hero-desc">
+                        <span style="color:#46d369; font-weight:bold;">98% Match</span>&nbsp; 2026 &nbsp;5 Seasons<br><br>
+                        When a young boy vanishes, a small town uncovers a mystery involving secret experiments, terrifying supernatural forces, and one strange little girl.
+                    </div>
+                    
+                    <div class="hero-btns">
+                        <button class="btn btn-play" onclick="openPlayer()">
+                            <svg viewBox="0 0 24 24" style="width:24px; height:24px; fill:black;"><path d="M8 5v14l11-7z"/></svg>
+                            Play
+                        </button>
+                        <button class="btn btn-info">
+                            <svg viewBox="0 0 24 24" style="width:24px; height:24px; fill:white; stroke:white; stroke-width:1;"><path d="M11 7h2v2h-2zm0 4h2v6h-2z" stroke="none"/><circle cx="12" cy="12" r="10" fill="none" stroke-width="2"/></svg>
+                            More Info
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="episodes-container">
+            <div class="section-title">Episodes <span style="font-weight:normal; font-size:1rem; margin-left:10px; color:#aaa;">Season 5 ▾</span></div>
+            
+            <div class="episode-item">
+                <div class="ep-index">8</div>
+                <div class="ep-thumbnail">
+                    <img src="https://images.hindustantimes.com/tech/img/2025/01/31/1600x900/Stranger_Things_1738327786846_1738327787099.jpg" style="width:100%; height:100%; object-fit:cover; opacity:0.6;">
+                    <div class="play-icon-overlay"><div class="play-arrow"></div></div>
+                </div>
+                <div class="ep-info">
+                    <div class="ep-header"><span>The Rightside Up</span> <span>142m</span></div>
+                    <div class="ep-desc">The final confrontation. Eleven fights for her life while the others defend Hawkins from total destruction.</div>
+                </div>
+            </div>
+
+            <div class="episode-item" onclick="toggleEvidence(this)">
+                <div class="ep-index" style="color:var(--netflix-red)">9</div>
+                
+                <div class="ep-thumbnail" style="border: 2px solid var(--netflix-red);">
+                    <svg class="conformity-logo" viewBox="0 0 200 100" preserveAspectRatio="xMidYMid slice">
+                        <defs>
+                            <filter id="neon-glow" x="-50%" y="-50%" width="200%" height="200%">
+                                <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+                                <feMerge>
+                                    <feMergeNode in="coloredBlur"/>
+                                    <feMergeNode in="SourceGraphic"/>
+                                </feMerge>
+                            </filter>
+                        </defs>
+                        <rect width="200" height="100" fill="#000" />
+                        <path d="M0,10 L200,10" stroke="#300" stroke-width="1" />
+                        <path d="M0,90 L200,90" stroke="#300" stroke-width="1" />
+                        
+                        <text x="100" y="45" text-anchor="middle" fill="transparent" stroke="#E50914" stroke-width="1.5" font-family="serif" font-weight="bold" font-size="22" filter="url(#neon-glow)">CONFORMITY</text>
+                        <text x="100" y="70" text-anchor="middle" fill="#E50914" font-family="serif" font-weight="bold" font-size="20" filter="url(#neon-glow)">GATE</text>
+                        
+                        <text x="100" y="88" text-anchor="middle" fill="#fff" font-family="sans-serif" font-size="6" letter-spacing="2">EPISODE IX</text>
+                    </svg>
+                    <div class="play-icon-overlay" style="opacity:1; background:rgba(229,9,20,0.4);"><div class="play-arrow"></div></div>
+                </div>
+
+                <div class="ep-info">
+                    <div class="ep-header"><span style="color:var(--netflix-red)">Conformity Gate</span> <span>--m</span></div>
+                    <div class="ep-desc" style="color:#ccc;">
+                        Hidden metadata detected. Simulation glitches found. Click to decrypt file JK95.
+                    </div>
+                    
+                    <div class="evidence-box">
+                        <div class="evidence-line" style="color:var(--netflix-red); font-weight:bold;">[DECRYPTED FILES FOUND]</div><br>
+                        <div class="evidence-line">01. ERR_WATERFALL: Missing 3rd Waterfall asset.</div>
+                        <div class="evidence-line">02. ERR_COLOR: Gowns=Orange (Prison ID).</div>
+                        <div class="evidence-line">03. ERR_BEHAVIOR: Creel_Pose.exe detected on Mike.</div>
+                        <div class="evidence-line">04. ERR_AUDIO: Wrong track "London Calling".</div>
+                        <div class="evidence-line">05. ERR_PHYSICS: No blood on Eleven (Max Power).</div>
+                        <div class="evidence-line">06. ERR_ASSET: Ring reused from Jonathan.</div>
+                        <div class="evidence-line">07. ERR_LOGIC: 0 Demodogs in final defense.</div>
+                        <div class="evidence-line"><br>> SYSTEM REBOOT SCHEDULED: JAN 7, 2026</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="video-player">
+        <div class="close-player" onclick="closePlayer()">✕</div>
+        
+        <div style="width:300px; height:150px; margin-bottom:20px;">
+             <svg viewBox="0 0 200 100" preserveAspectRatio="xMidYMid meet">
+                <defs>
+                    <filter id="neon-glow-2" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+                        <feMerge>
+                            <feMergeNode in="coloredBlur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+                </defs>
+                <text x="100" y="45" text-anchor="middle" fill="transparent" stroke="#E50914" stroke-width="2" font-family="serif" font-weight="bold" font-size="22" filter="url(#neon-glow-2)">CONFORMITY</text>
+                <text x="100" y="70" text-anchor="middle" fill="#E50914" font-family="serif" font-weight="bold" font-size="20" filter="url(#neon-glow-2)">GATE</text>
+            </svg>
+        </div>
+
+        <div class="loader"></div>
+        <div class="player-msg" style="font-size:1rem; color:#fff;">LIVE FEED BEGINS IN:</div>
+        <div class="countdown" id="countdown">00:00:00</div>
+    </div>
+
+    <script>
+        // 1. MODAL
+        function checkAnswer(belief) {
+            const btns = document.getElementById('modal-btns');
+            const resp = document.getElementById('modal-response');
+            const audio = document.getElementById('bg-audio');
+
+            btns.style.display = 'none';
+            audio.volume = 0.4;
+            audio.play().catch(e => console.log(e));
+
+            if(belief) {
+                resp.innerText = "IT WAS A LIE. WAKE UP.";
+                resp.style.color = "#E50914";
+            } else {
+                resp.innerText = "YOU SEE THE TRUTH.";
+                resp.style.color = "#46d369";
+            }
+
+            setTimeout(() => {
+                document.getElementById('gate-modal').style.display = 'none';
+                const app = document.getElementById('main-app');
+                app.style.display = 'block';
+                setTimeout(() => app.style.opacity = 1, 100);
+            }, 2000);
+        }
+
+        // 2. TOGGLE EVIDENCE
+        function toggleEvidence(el) {
+            const box = el.querySelector('.evidence-box');
+            box.style.display = (box.style.display === 'block') ? 'none' : 'block';
+        }
+
+        // 3. PLAYER
+        function openPlayer() { document.getElementById('video-player').style.display = 'flex'; }
+        function closePlayer() { document.getElementById('video-player').style.display = 'none'; }
+
+        // 4. COUNTDOWN (Target: Jan 7, 2026 8:30 PM EST)
+        const target = new Date("2026-01-07T20:30:00-05:00").getTime();
+        
+        setInterval(() => {
+            const now = new Date().getTime();
+            const d = target - now;
+
+            if(d < 0) {
+                document.getElementById('countdown').innerHTML = "SIGNAL LOST";
+                return;
+            }
+
+            const h = Math.floor((d % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const m = Math.floor((d % (1000 * 60 * 60)) / (1000 * 60));
+            const s = Math.floor((d % (1000 * 60)) / 1000);
+
+            document.getElementById('countdown').innerHTML = 
+                (h<10?"0"+h:h) + ":" + (m<10?"0"+m:m) + ":" + (s<10?"0"+s:s);
+        }, 1000);
+    </script>
+</body>
+</html>
